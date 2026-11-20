@@ -1,5 +1,13 @@
 # Buscaminas en Jack (Nand2Tetris)
 
+## Integrantes
+
+- Santiago Diaz
+- Camila Rodriguez
+- Sebastian Gudiño
+
+Este trabajo fue hecho con apoyo de inteligencia artificial. VibeCoded
+
 Juego de Buscaminas hecho en el lenguaje Jack para la plataforma Hack de Nand2Tetris, como proyecto de Organización de Computadores. Corre en el VM Emulator oficial, sobre una pantalla monocromática de 512 × 256 píxeles.
 
 ## Cómo se juega
@@ -63,10 +71,3 @@ La entrega ya incluye los archivos `.vm`, así que puedes saltar este paso. Si m
 | `Sprites.jack` | Dibujos de 16 × 16 píxeles (números del 1 al 8, mina, mina partida y bandera) compartidos por todas las casillas. |
 | `Stack.jack` | Pila de enteros usada para destapar casillas en cadena sin recursión. |
 
-## Integrantes
-
-- Santiago Diaz
-- Camila Rodriguez
-- Sebastian Gudiño
-
-Este trabajo fue hecho con apoyo de inteligencia artificial.
