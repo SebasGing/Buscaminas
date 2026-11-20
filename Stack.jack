@@ -1,0 +1,55 @@
+/**
+ * Stack: pila de enteros de capacidad fija.
+ * Se usa para destapar casillas vacias en cadena sin recursion.
+ * Cada valor guardado es el indice de una casilla: fila * 10 + columna.
+ */
+class Stack {
+    field Array data;      // almacenamiento de la pila
+    field int top;         // cantidad de elementos guardados
+    field int capacity;    // maximo de elementos
+
+    /** Crea una pila vacia con la capacidad indicada. */
+    constructor Stack new(int cap) {
+        let capacity = cap;
+        let data = Array.new(cap);
+        let top = 0;
+        return this;
+    }
+
+    /** Apila un valor. Devuelve false si la pila esta llena. */
+    method boolean push(int v) {
+        if (top = capacity) {
+            return false;
+        }
+        let data[top] = v;
+        let top = top + 1;
+        return true;
+    }
+
+    /** Desapila y devuelve el ultimo valor. Si esta vacia devuelve -1. */
+    method int pop() {
+        if (top = 0) {
+            return -1;
+        }
+        let top = top - 1;
+        return data[top];
+    }
+
+    /** True si no hay elementos. */
+    method boolean isEmpty() {
+        return top = 0;
+    }
+
+    /** Vacia la pila para reutilizarla. */
+    method void clear() {
+        let top = 0;
+        return;
+    }
+
+    /** Libera el arreglo y la pila. */
+    method void dispose() {
+        do data.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+}

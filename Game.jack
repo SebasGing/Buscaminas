@@ -1,0 +1,209 @@
+/**
+ * Game: controla el ciclo del juego (teclado, estado, puntaje y reinicio).
+ * Main solo crea un Game y llama a run().
+ *
+ * Teclas: W A S D mueven el cursor, Enter destapa, B pone/quita bandera,
+ * R reinicia, Esc sale. Las letras valen en mayuscula y minuscula.
+ */
+class Game {
+    field Board board;
+    field Panel panel;
+    field Cursor cursor;
+    field int state;          // 0 = jugando, 1 = ganada, 2 = perdida
+    field int score;          // 1 punto por casilla destapada
+    field boolean minesPlaced; // las minas se colocan con el primer Enter
+    field int counter;        // contador que avanza mientras se espera una tecla (semilla)
+
+    /** Inicializa los sprites (una sola vez) y arma la primera partida. */
+    constructor Game new() {
+        do Sprites.init();
+        let counter = 0;
+        do startRound();
+        return this;
+    }
+
+    /** Crea tablero, panel y cursor y los dibuja. */
+    method void startRound() {
+        do Screen.clearScreen();
+        let board = Board.new(30, 28);
+        let panel = Panel.new(256, 20, 244, 216);
+        let cursor = Cursor.new(board);
+        let state = 0;
+        let score = 0;
+        let minesPlaced = false;
+        do board.draw();
+        do panel.draw(board.getRows(), board.getCols(), board.getMines());
+        do cursor.draw();
+        return;
+    }
+
+    /** Libera cursor, tablero y panel de la partida actual. */
+    method void endRound() {
+        do cursor.dispose();
+        do board.dispose();
+        do panel.dispose();
+        return;
+    }
+
+    /** Reinicia la partida sin dejar memoria sin liberar. */
+    method void restart() {
+        do endRound();
+        do startRound();
+        return;
+    }
+
+    /** Ciclo principal: una accion por pulsacion. Termina con Esc. */
+    method void run() {
+        var int key;
+        var boolean exit;
+        let exit = false;
+        while (~exit) {
+            let key = waitKey();
+            if (key = 140) {
+                let exit = true;
+            } else {
+                if (isKey(key, 82)) {
+                    do restart();
+                } else {
+                    if (state = 0) {
+                        do play(key);
+                    }
+                }
+            }
+            do waitRelease();
+        }
+        return;
+    }
+
+    /** Espera una tecla; mientras tanto el contador sigue avanzando. */
+    method int waitKey() {
+        var int key;
+        let key = Keyboard.keyPressed();
+        while (key = 0) {
+            let counter = counter + 1;
+            let key = Keyboard.keyPressed();
+        }
+        return key;
+    }
+
+    /** Espera a que se suelte la tecla, para no repetir la accion. */
+    method void waitRelease() {
+        while (~(Keyboard.keyPressed() = 0)) {
+            let counter = counter + 1;
+        }
+        return;
+    }
+
+    /** True si 'key' es la letra con codigo mayuscula 'upper' (en mayuscula o minuscula). */
+    method boolean isKey(int key, int upper) {
+        return (key = upper) | (key = (upper + 32));
+    }
+
+    /** Ejecuta la accion de una tecla durante la partida. */
+    method void play(int key) {
+        if (key = 128) {                 // Enter: destapar
+            do reveal();
+            return;
+        }
+        if (isKey(key, 66)) {            // B: bandera
+            do flag();
+            return;
+        }
+        if (isKey(key, 87)) {            // W: arriba
+            do hideCursor();
+            do cursor.moveUp();
+            do cursor.draw();
+            return;
+        }
+        if (isKey(key, 83)) {            // S: abajo
+            do hideCursor();
+            do cursor.moveDown();
+            do cursor.draw();
+            return;
+        }
+        if (isKey(key, 65)) {            // A: izquierda
+            do hideCursor();
+            do cursor.moveLeft();
+            do cursor.draw();
+            return;
+        }
+        if (isKey(key, 68)) {            // D: derecha
+            do hideCursor();
+            do cursor.moveRight();
+            do cursor.draw();
+            return;
+        }
+        return;
+    }
+
+    /** Borra el marco: Cursor.erase() no dibuja, asi que se redibuja la casilla. */
+    method void hideCursor() {
+        var Cell cell;
+        do cursor.erase();
+        let cell = board.getCell(cursor.getRow(), cursor.getCol());
+        do cell.draw();
+        return;
+    }
+
+    /** Pone o quita la bandera de la casilla del cursor (solo si esta cubierta). */
+    method void flag() {
+        var Cell cell;
+        let cell = board.getCell(cursor.getRow(), cursor.getCol());
+        if (cell.isRevealed()) {
+            return;
+        }
+        do cell.toggleFlag();
+        do cell.draw();
+        do cursor.draw();
+        return;
+    }
+
+    /** Destapa la casilla del cursor. El primer Enter coloca las minas
+        (con el contador como semilla) dejando segura esa casilla. */
+    method void reveal() {
+        var int r, c, n;
+        var Cell cell;
+        let r = cursor.getRow();
+        let c = cursor.getCol();
+        let cell = board.getCell(r, c);
+        if (cell.isRevealed()) {
+            return;
+        }
+        if (cell.isFlagged()) {
+            return;
+        }
+
+        if (~minesPlaced) {
+            do board.placeMines(r, c, counter);
+            let minesPlaced = true;
+            do panel.setStatus("Jugando");
+        }
+
+        let n = board.reveal(r, c);
+        if (n < 0) {
+            // Mina: se pierde, se muestran todas las minas partidas y no se redibuja el cursor
+            let state = 2;
+            do board.revealMines();
+            do panel.setStatus("Perdiste pa");
+            return;
+        }
+
+        let score = score + n;
+        do panel.setScore(score);
+        if (board.isWon()) {
+            let state = 1;
+            do panel.setStatus("u win");
+            return;
+        }
+        do cursor.draw();
+        return;
+    }
+
+    /** Libera la partida actual y los sprites. */
+    method void dispose() {
+        do endRound();
+        do Sprites.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+}

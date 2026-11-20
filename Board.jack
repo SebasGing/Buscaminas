@@ -1,0 +1,271 @@
+/**
+ * Board: tablero 10x10 del Buscaminas.
+ * Guarda las 100 casillas, coloca las minas (despues del primer clic),
+ * calcula los numeros de minas vecinas y destapa en cadena con una pila
+ * propia (sin recursion).
+ */
+class Board {
+    field Array cells;       // las 100 casillas
+    field int x0, y0;        // esquina superior izquierda del tablero (pixeles)
+    field int rows, cols;    // dimensiones (10 x 10)
+    field int mines;         // numero de minas
+    field int revealedCount; // casillas sin mina destapadas hasta ahora
+    field Stack stack;       // pila para el destapado en cadena
+
+    /** Crea el tablero y todas sus casillas a partir de la posicion (Ax, Ay). */
+    constructor Board new(int Ax, int Ay) {
+        var int r, c, size;
+        let x0 = Ax;
+        let y0 = Ay;
+        let rows = 10;
+        let cols = 10;
+        let mines = 10;
+        let revealedCount = 0;
+        let size = Cell.size();
+        let cells = Array.new(rows * cols);
+        let stack = Stack.new(rows * cols);
+
+        let r = 0;
+        while (r < rows) {
+            let c = 0;
+            while (c < cols) {
+                let cells[(r * cols) + c] = Cell.new(x0 + (c * size), y0 + (r * size), r, c);
+                let c = c + 1;
+            }
+            let r = r + 1;
+        }
+        return this;
+    }
+
+    /** Dibuja el marco y luego cada casilla. */
+    method void draw() {
+        var int i;
+        var Cell cell;
+        do drawFrame();
+        let i = 0;
+        while (i < (rows * cols)) {
+            let cell = cells[i];
+            do cell.draw();
+            let i = i + 1;
+        }
+        return;
+    }
+
+    /** Marco negro de 3 pixeles alrededor del tablero. */
+    method void drawFrame() {
+        var int w, h, x1, y1, x2, y2;
+        let w = cols * Cell.size();   // 200 px
+        let h = rows * Cell.size();   // 200 px
+        let x1 = x0 - 4;
+        let y1 = y0 - 4;
+        let x2 = x0 + w + 3;
+        let y2 = y0 + h + 3;
+
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x1, y1, x2, y0 - 2);          // arriba
+        do Screen.drawRectangle(x1, y0 + h + 1, x2, y2);      // abajo
+        do Screen.drawRectangle(x1, y1, x0 - 2, y2);          // izquierda
+        do Screen.drawRectangle(x0 + w + 1, y1, x2, y2);      // derecha
+        return;
+    }
+
+    /** True si (r, c) esta dentro del tablero. */
+    method boolean inside(int r, int c) {
+        return ((r > -1) & (r < rows)) & ((c > -1) & (c < cols));
+    }
+
+    /** True si (r, c) es la casilla segura (sr, sc) o una de sus 8 vecinas. */
+    method boolean isNear(int r, int c, int sr, int sc) {
+        return ((r > (sr - 2)) & (r < (sr + 2))) & ((c > (sc - 2)) & (c < (sc + 2)));
+    }
+
+    /** Coloca las minas al azar sin tocar la casilla (safeRow, safeCol) ni sus
+        vecinas, y calcula el numero de minas vecinas de cada casilla.
+        'seed' es el valor del contador que avanza mientras se espera la primera tecla. */
+    method void placeMines(int safeRow, int safeCol, int seed) {
+        var int placed, s, idx, r, c;
+        var Cell cell;
+        let s = seed + 12345;
+        let placed = 0;
+        while (placed < mines) {
+            // generador congruencial de 16 bits; se usan los bits altos para el indice 0..99
+            let s = Math.multiply(s, 25173) + 13849;
+            let idx = (s & 32767) / 328;
+            let r = idx / cols;
+            let c = idx - (r * cols);
+            if (~(isNear(r, c, safeRow, safeCol))) {
+                let cell = getCell(r, c);
+                if (~(cell.hasMine())) {
+                    do cell.setMine(true);
+                    let placed = placed + 1;
+                }
+            }
+        }
+        do countAdjacent();
+        return;
+    }
+
+    /** Calcula y guarda en cada casilla cuantas minas tiene alrededor. */
+    method void countAdjacent() {
+        var int r, c;
+        var Cell cell;
+        let r = 0;
+        while (r < rows) {
+            let c = 0;
+            while (c < cols) {
+                let cell = getCell(r, c);
+                do cell.setAdjacent(countNeighbors(r, c));
+                let c = c + 1;
+            }
+            let r = r + 1;
+        }
+        return;
+    }
+
+    /** Cuenta las minas en las 8 casillas vecinas de (r, c). */
+    method int countNeighbors(int r, int c) {
+        var int dr, dc, nr, nc, n;
+        var Cell cell;
+        let n = 0;
+        let dr = -1;
+        while (dr < 2) {
+            let dc = -1;
+            while (dc < 2) {
+                let nr = r + dr;
+                let nc = c + dc;
+                if (~((dr = 0) & (dc = 0))) {
+                    if (inside(nr, nc)) {
+                        let cell = getCell(nr, nc);
+                        if (cell.hasMine()) {
+                            let n = n + 1;
+                        }
+                    }
+                }
+                let dc = dc + 1;
+            }
+            let dr = dr + 1;
+        }
+        return n;
+    }
+
+    /** Destapa la casilla (r, c), la dibuja y, si no tiene minas vecinas,
+        destapa en cadena las vecinas con una pila propia.
+        Devuelve cuantas casillas destapo (para el puntaje), 0 si ya estaba
+        destapada o tiene bandera, o -1 si tiene mina (no la destapa). */
+    method int reveal(int r, int c) {
+        var Cell cell, n;
+        var int count, i, rr, cc, dr, dc, nr, nc;
+
+        let cell = getCell(r, c);
+        if (cell.isRevealed()) {
+            return 0;
+        }
+        if (cell.isFlagged()) {
+            return 0;
+        }
+        if (cell.hasMine()) {
+            return -1;
+        }
+
+        do cell.reveal();
+        do cell.draw();
+        let count = 1;
+
+        do stack.clear();
+        if (cell.getAdjacent() = 0) {
+            do pushCell((r * cols) + c);
+        }
+
+        while (~(stack.isEmpty())) {
+            let i = stack.pop();
+            let rr = i / cols;
+            let cc = i - (rr * cols);
+            let dr = -1;
+            while (dr < 2) {
+                let dc = -1;
+                while (dc < 2) {
+                    let nr = rr + dr;
+                    let nc = cc + dc;
+                    if (inside(nr, nc)) {
+                        let n = getCell(nr, nc);
+                        if (~(n.isRevealed())) {
+                            if (~(n.isFlagged())) {
+                                // se marca como destapada ANTES de apilar: ninguna casilla entra dos veces
+                                do n.reveal();
+                                do n.draw();
+                                let count = count + 1;
+                                if (n.getAdjacent() = 0) {
+                                    do pushCell((nr * cols) + nc);
+                                }
+                            }
+                        }
+                    }
+                    let dc = dc + 1;
+                }
+                let dr = dr + 1;
+            }
+        }
+
+        let revealedCount = revealedCount + count;
+        return count;
+    }
+
+    /** Apila una casilla. La pila de 100 posiciones no se puede llenar (cada
+        casilla entra a lo sumo una vez); si ocurriera, se detiene el programa
+        con el error 100 de Sys.error. */
+    method void pushCell(int index) {
+        if (~(stack.push(index))) {
+            do Sys.error(100);
+        }
+        return;
+    }
+
+    /** Al perder: destapa todas las minas y las dibuja partidas en dos. */
+    method void revealMines() {
+        var int i;
+        var Cell cell;
+        let i = 0;
+        while (i < (rows * cols)) {
+            let cell = cells[i];
+            if (cell.hasMine()) {
+                do cell.reveal();
+                do cell.drawBroken();
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    /** True si ya se destaparon todas las casillas sin mina (90 de 100). */
+    method boolean isWon() {
+        return revealedCount = ((rows * cols) - mines);
+    }
+
+    /** Devuelve la casilla en (r, c). */
+    method Cell getCell(int r, int c) {
+        return cells[(r * cols) + c];
+    }
+
+    method int getX() { return x0; }
+    method int getY() { return y0; }
+    method int getRows() { return rows; }
+    method int getCols() { return cols; }
+    method int getMines() { return mines; }
+    method int getRevealedCount() { return revealedCount; }
+
+    /** Libera cada casilla, la pila, el arreglo y el propio tablero. */
+    method void dispose() {
+        var int i;
+        var Cell cell;
+        let i = 0;
+        while (i < (rows * cols)) {
+            let cell = cells[i];
+            do cell.dispose();
+            let i = i + 1;
+        }
+        do cells.dispose();
+        do stack.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+}

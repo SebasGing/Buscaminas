@@ -1,0 +1,309 @@
+function Cell.size 0
+push constant 20
+return
+function Cell.new 0
+push constant 8
+call Memory.alloc 1
+pop pointer 0
+push argument 0
+pop this 0
+push argument 1
+pop this 1
+push argument 2
+pop this 2
+push argument 3
+pop this 3
+push constant 0
+pop this 4
+push constant 0
+pop this 5
+push constant 0
+pop this 6
+push constant 0
+pop this 7
+push pointer 0
+return
+function Cell.draw 0
+push argument 0
+pop pointer 0
+push this 5
+not
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push pointer 0
+call Cell.drawCovered 1
+pop temp 0
+push this 6
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+call Sprites.flag 0
+push this 0
+push constant 2
+add
+push this 1
+push constant 2
+add
+call Sprites.draw 3
+pop temp 0
+label IF_FALSE1
+push constant 0
+return
+label IF_FALSE0
+push pointer 0
+call Cell.drawRevealed 1
+pop temp 0
+push this 4
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+call Sprites.mine 0
+push this 0
+push constant 2
+add
+push this 1
+push constant 2
+add
+call Sprites.draw 3
+pop temp 0
+push constant 0
+return
+label IF_FALSE2
+push this 7
+push constant 0
+gt
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push this 7
+push this 0
+push constant 2
+add
+push this 1
+push constant 2
+add
+call Sprites.draw 3
+pop temp 0
+label IF_FALSE3
+push constant 0
+return
+function Cell.drawCovered 2
+push argument 0
+pop pointer 0
+push this 0
+push constant 19
+add
+pop local 0
+push this 1
+push constant 19
+add
+pop local 1
+push constant 0
+call Screen.setColor 1
+pop temp 0
+push this 0
+push this 1
+push local 0
+push local 1
+call Screen.drawRectangle 4
+pop temp 0
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push this 0
+push this 1
+push local 0
+push this 1
+call Screen.drawLine 4
+pop temp 0
+push this 0
+push local 1
+push local 0
+push local 1
+call Screen.drawLine 4
+pop temp 0
+push this 0
+push this 1
+push this 0
+push local 1
+call Screen.drawLine 4
+pop temp 0
+push local 0
+push this 1
+push local 0
+push local 1
+call Screen.drawLine 4
+pop temp 0
+push this 0
+push constant 3
+add
+push this 1
+push constant 16
+add
+push this 0
+push constant 17
+add
+push this 1
+push constant 17
+add
+call Screen.drawRectangle 4
+pop temp 0
+push this 0
+push constant 16
+add
+push this 1
+push constant 3
+add
+push this 0
+push constant 17
+add
+push this 1
+push constant 17
+add
+call Screen.drawRectangle 4
+pop temp 0
+push constant 0
+return
+function Cell.drawRevealed 2
+push argument 0
+pop pointer 0
+push this 0
+push constant 19
+add
+pop local 0
+push this 1
+push constant 19
+add
+pop local 1
+push constant 0
+call Screen.setColor 1
+pop temp 0
+push this 0
+push this 1
+push local 0
+push local 1
+call Screen.drawRectangle 4
+pop temp 0
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push this 0
+push this 1
+push local 0
+push this 1
+call Screen.drawLine 4
+pop temp 0
+push this 0
+push local 1
+push local 0
+push local 1
+call Screen.drawLine 4
+pop temp 0
+push this 0
+push this 1
+push this 0
+push local 1
+call Screen.drawLine 4
+pop temp 0
+push local 0
+push this 1
+push local 0
+push local 1
+call Screen.drawLine 4
+pop temp 0
+push constant 0
+return
+function Cell.drawBroken 0
+push argument 0
+pop pointer 0
+push pointer 0
+call Cell.drawRevealed 1
+pop temp 0
+call Sprites.brokenMine 0
+push this 0
+push constant 2
+add
+push this 1
+push constant 2
+add
+call Sprites.draw 3
+pop temp 0
+push constant 0
+return
+function Cell.reveal 0
+push argument 0
+pop pointer 0
+push constant 0
+not
+pop this 5
+push constant 0
+return
+function Cell.toggleFlag 0
+push argument 0
+pop pointer 0
+push this 5
+not
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 6
+not
+pop this 6
+label IF_FALSE0
+push constant 0
+return
+function Cell.setMine 0
+push argument 0
+pop pointer 0
+push argument 1
+pop this 4
+push constant 0
+return
+function Cell.setAdjacent 0
+push argument 0
+pop pointer 0
+push argument 1
+pop this 7
+push constant 0
+return
+function Cell.getRow 0
+push argument 0
+pop pointer 0
+push this 2
+return
+function Cell.getCol 0
+push argument 0
+pop pointer 0
+push this 3
+return
+function Cell.getAdjacent 0
+push argument 0
+pop pointer 0
+push this 7
+return
+function Cell.hasMine 0
+push argument 0
+pop pointer 0
+push this 4
+return
+function Cell.isRevealed 0
+push argument 0
+pop pointer 0
+push this 5
+return
+function Cell.isFlagged 0
+push argument 0
+pop pointer 0
+push this 6
+return
+function Cell.dispose 0
+push argument 0
+pop pointer 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return

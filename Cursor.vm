@@ -1,0 +1,184 @@
+function Cursor.new 0
+push constant 3
+call Memory.alloc 1
+pop pointer 0
+push argument 0
+pop this 0
+push constant 0
+pop this 1
+push constant 0
+pop this 2
+push pointer 0
+return
+function Cursor.draw 2
+push argument 0
+pop pointer 0
+push this 0
+call Board.getX 1
+push this 2
+call Cell.size 0
+call Math.multiply 2
+add
+pop local 0
+push this 0
+call Board.getY 1
+push this 1
+call Cell.size 0
+call Math.multiply 2
+add
+pop local 1
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push local 0
+push constant 1
+add
+push local 1
+push constant 1
+add
+push local 0
+push constant 18
+add
+push local 1
+push constant 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+push local 0
+push constant 1
+add
+push local 1
+push constant 17
+add
+push local 0
+push constant 18
+add
+push local 1
+push constant 18
+add
+call Screen.drawRectangle 4
+pop temp 0
+push local 0
+push constant 1
+add
+push local 1
+push constant 1
+add
+push local 0
+push constant 2
+add
+push local 1
+push constant 18
+add
+call Screen.drawRectangle 4
+pop temp 0
+push local 0
+push constant 17
+add
+push local 1
+push constant 1
+add
+push local 0
+push constant 18
+add
+push local 1
+push constant 18
+add
+call Screen.drawRectangle 4
+pop temp 0
+push constant 0
+return
+function Cursor.erase 0
+push argument 0
+pop pointer 0
+push constant 0
+return
+function Cursor.moveUp 0
+push argument 0
+pop pointer 0
+push this 1
+push constant 0
+gt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 1
+push constant 1
+sub
+pop this 1
+label IF_FALSE0
+push constant 0
+return
+function Cursor.moveDown 0
+push argument 0
+pop pointer 0
+push this 1
+push this 0
+call Board.getRows 1
+push constant 1
+sub
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 1
+push constant 1
+add
+pop this 1
+label IF_FALSE0
+push constant 0
+return
+function Cursor.moveLeft 0
+push argument 0
+pop pointer 0
+push this 2
+push constant 0
+gt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 2
+push constant 1
+sub
+pop this 2
+label IF_FALSE0
+push constant 0
+return
+function Cursor.moveRight 0
+push argument 0
+pop pointer 0
+push this 2
+push this 0
+call Board.getCols 1
+push constant 1
+sub
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 2
+push constant 1
+add
+pop this 2
+label IF_FALSE0
+push constant 0
+return
+function Cursor.getRow 0
+push argument 0
+pop pointer 0
+push this 1
+return
+function Cursor.getCol 0
+push argument 0
+pop pointer 0
+push this 2
+return
+function Cursor.dispose 0
+push argument 0
+pop pointer 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return

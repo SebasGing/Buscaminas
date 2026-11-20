@@ -1,0 +1,162 @@
+/**
+ * Sprites: biblioteca compartida de dibujos 16x16 (bitmap).
+ * Se crea UNA sola vez (Sprites.init()) y todas las casillas la consultan.
+ *
+ * Cada sprite es un arreglo de 16 enteros, uno por fila. En cada entero el
+ * bit 0 es el pixel de la IZQUIERDA y el bit 15 el de la DERECHA; un bit en 1
+ * significa pixel negro.
+ *
+ * Identificadores:
+ *    1..8 = numero de minas vecinas
+ *    9    = mina
+ *    10   = mina partida en dos (al perder)
+ *    11   = bandera
+ */
+class Sprites {
+    static Array table;   // table[id] = arreglo de 16 filas (table[0] no se usa)
+
+    /** Crea todos los sprites. Llamar una vez, antes de dibujar casillas. */
+    function void init() {
+        var Array s;
+        let table = Array.new(12);
+        let table[0] = 0;
+
+        // 1
+        let s = Sprites.blank();
+        let s[3] = 384; let s[4] = 448; let s[5] = 480; let s[6] = 384;
+        let s[7] = 384; let s[8] = 384; let s[9] = 384; let s[10] = 384;
+        let s[11] = 384; let s[12] = 2016;
+        let table[1] = s;
+
+        // 2
+        let s = Sprites.blank();
+        let s[3] = 2016; let s[4] = 3120; let s[5] = 3072; let s[6] = 1536;
+        let s[7] = 768; let s[8] = 384; let s[9] = 192; let s[10] = 96;
+        let s[11] = 48; let s[12] = 4080;
+        let table[2] = s;
+
+        // 3
+        let s = Sprites.blank();
+        let s[3] = 2016; let s[4] = 3120; let s[5] = 3072; let s[6] = 1536;
+        let s[7] = 960; let s[8] = 1536; let s[9] = 3072; let s[10] = 3072;
+        let s[11] = 3120; let s[12] = 2016;
+        let table[3] = s;
+
+        // 4
+        let s = Sprites.blank();
+        let s[3] = 768; let s[4] = 896; let s[5] = 960; let s[6] = 864;
+        let s[7] = 816; let s[8] = 4080; let s[9] = 768; let s[10] = 768;
+        let s[11] = 768; let s[12] = 768;
+        let table[4] = s;
+
+        // 5
+        let s = Sprites.blank();
+        let s[3] = 4080; let s[4] = 48; let s[5] = 48; let s[6] = 2032;
+        let s[7] = 3120; let s[8] = 3072; let s[9] = 3072; let s[10] = 3072;
+        let s[11] = 3120; let s[12] = 2016;
+        let table[5] = s;
+
+        // 6
+        let s = Sprites.blank();
+        let s[3] = 960; let s[4] = 96; let s[5] = 48; let s[6] = 48;
+        let s[7] = 496; let s[8] = 816; let s[9] = 1584; let s[10] = 1584;
+        let s[11] = 1632; let s[12] = 960;
+        let table[6] = s;
+
+        // 7
+        let s = Sprites.blank();
+        let s[3] = 4080; let s[4] = 3072; let s[5] = 1536; let s[6] = 1536;
+        let s[7] = 768; let s[8] = 768; let s[9] = 384; let s[10] = 384;
+        let s[11] = 192; let s[12] = 192;
+        let table[7] = s;
+
+        // 8
+        let s = Sprites.blank();
+        let s[3] = 2016; let s[4] = 3120; let s[5] = 3120; let s[6] = 1632;
+        let s[7] = 960; let s[8] = 1632; let s[9] = 3120; let s[10] = 3120;
+        let s[11] = 3120; let s[12] = 2016;
+        let table[8] = s;
+
+        // 9: mina
+        let s = Sprites.blank();
+        let s[1] = 384; let s[2] = 4488; let s[3] = 2448; let s[4] = 2016;
+        let s[5] = 4080; let s[6] = 8088; let s[7] = 32670; let s[8] = 32766;
+        let s[9] = 8184; let s[10] = 4080; let s[11] = 2016; let s[12] = 2448;
+        let s[13] = 4488; let s[14] = 384;
+        let table[9] = s;
+
+        // 10: mina partida en dos (grieta en zigzag, mitades separadas 1 px)
+        let s = Sprites.blank();
+        let s[1] = 576; let s[2] = 8964; let s[3] = 4872; let s[4] = 3696;
+        let s[5] = 7800; let s[6] = 16140; let s[7] = -241; let s[8] = -385;
+        let s[9] = 15996; let s[10] = 7992; let s[11] = 3888; let s[12] = 4680;
+        let s[13] = 8772; let s[14] = 768;
+        let table[10] = s;
+
+        // 11: bandera (filas 14-15 y columnas 14-15 vacias para no pisar el relieve)
+        let s = Sprites.blank();
+        let s[2] = 448; let s[3] = 1984; let s[4] = 8128; let s[5] = 1984;
+        let s[6] = 448; let s[7] = 64; let s[8] = 64; let s[9] = 64;
+        let s[10] = 64; let s[11] = 1008; let s[12] = 2040;
+        let table[11] = s;
+
+        return;
+    }
+
+    /** Arreglo de 16 filas en cero (Array.new no inicializa la memoria). */
+    function Array blank() {
+        var Array s;
+        var int r;
+        let s = Array.new(16);
+        let r = 0;
+        while (r < 16) {
+            let s[r] = 0;
+            let r = r + 1;
+        }
+        return s;
+    }
+
+    /** Identificadores de los sprites que no son numeros. */
+    function int mine() { return 9; }
+    function int brokenMine() { return 10; }
+    function int flag() { return 11; }
+
+    /** Dibuja el sprite 'id' en negro con su esquina superior izquierda en (x, y). */
+    function void draw(int id, int x, int y) {
+        var Array s;
+        var int r, c, bits, mask;
+        let s = table[id];
+        do Screen.setColor(true);
+        let r = 0;
+        while (r < 16) {
+            let bits = s[r];
+            if (~(bits = 0)) {
+                let mask = 1;
+                let c = 0;
+                while (c < 16) {
+                    if (~((bits & mask) = 0)) {
+                        do Screen.drawPixel(x + c, y + r);
+                    }
+                    let mask = mask + mask;
+                    let c = c + 1;
+                }
+            }
+            let r = r + 1;
+        }
+        return;
+    }
+
+    /** Libera todos los sprites. Llamar una vez al terminar el programa. */
+    function void dispose() {
+        var int i;
+        var Array s;
+        let i = 1;
+        while (i < 12) {
+            let s = table[i];
+            do s.dispose();
+            let i = i + 1;
+        }
+        do table.dispose();
+        return;
+    }
+}

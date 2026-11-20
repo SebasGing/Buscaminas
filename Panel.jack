@@ -1,0 +1,124 @@
+/**
+ * Panel: panel derecho con el titulo, los datos del tablero, el puntaje,
+ * el estado de la partida y la leyenda de teclas.
+ * El puntaje y el estado se actualizan con setScore() y setStatus(), que
+ * reescriben solo su linea (sin redibujar todo el panel).
+ *
+ * Memoria: en Jack cada texto entre comillas crea un String nuevo cada vez
+ * que se ejecuta. Para no dejar fugas, todo texto se imprime con say(), que
+ * lo libera despues de usarlo. Por eso setStatus() libera el texto que recibe.
+ */
+class Panel {
+    field int x, y, w, h;   // rectangulo del panel en pixeles
+
+    constructor Panel new(int Ax, int Ay, int Aw, int Ah) {
+        let x = Ax;
+        let y = Ay;
+        let w = Aw;
+        let h = Ah;
+        return this;
+    }
+
+    /** Dibuja el panel completo con el puntaje en 0 y el estado "Listo". */
+    method void draw(int rows, int cols, int mines) {
+        do drawBorder();
+
+        // Titulo
+        do Output.moveCursor(3, 39);
+        do say("BUSCAMINAS");
+        do Screen.setColor(true);
+        do Screen.drawLine(x + 12, 50, x + w - 12, 50);   // separador
+
+        // Datos fijos del juego
+        do Output.moveCursor(6, 34);
+        do say("Tablero: ");
+        do Output.printInt(rows);
+        do say(" x ");
+        do Output.printInt(cols);
+
+        do Output.moveCursor(8, 34);
+        do say("Minas:   ");
+        do Output.printInt(mines);
+
+        // Datos que cambian durante la partida
+        do setScore(0);
+        do setStatus("Listo");
+
+        // Leyenda de teclas
+        do Screen.setColor(true);
+        do Screen.drawLine(x + 12, 148, x + w - 12, 148);   // separador
+
+        do Output.moveCursor(14, 34);
+        do say("Teclas:");
+        do Output.moveCursor(15, 34);
+        do say("WASD   Mover");
+        do Output.moveCursor(16, 34);
+        do say("Enter  Destapar");
+        do Output.moveCursor(17, 34);
+        do say("B      Bandera");
+        do Output.moveCursor(18, 34);
+        do say("R      Reiniciar");
+        do Output.moveCursor(19, 34);
+        do say("Esc    Salir");
+        return;
+    }
+
+    /** Reescribe solo la linea del puntaje. Los espacios finales borran
+        digitos que hayan quedado de un valor anterior mas largo. */
+    method void setScore(int score) {
+        do Output.moveCursor(10, 34);
+        do say("Puntaje: ");
+        do Output.printInt(score);
+        do say("   ");
+        return;
+    }
+
+    /** Reescribe solo la linea del estado ("Listo", "Jugando", "u win",
+        "Perdiste pa"), rellenando con espacios hasta 11 caracteres para
+        borrar el texto anterior. Este metodo LIBERA el String recibido,
+        asi que se puede llamar con un texto entre comillas sin fugas. */
+    method void setStatus(String text) {
+        var int pad;
+        do Output.moveCursor(12, 34);
+        do say("Estado:  ");
+        do Output.printString(text);
+        let pad = 11 - text.length();
+        do text.dispose();
+        while (pad > 0) {
+            do Output.printChar(32);
+            let pad = pad - 1;
+        }
+        return;
+    }
+
+    /** Imprime un texto en la posicion actual del cursor de texto y lo libera. */
+    method void say(String text) {
+        do Output.printString(text);
+        do text.dispose();
+        return;
+    }
+
+    /** Doble borde rectangular alrededor del panel. */
+    method void drawBorder() {
+        var int x2, y2;
+        let x2 = x + w - 1;
+        let y2 = y + h - 1;
+        do Screen.setColor(true);
+        // borde exterior
+        do Screen.drawLine(x, y, x2, y);
+        do Screen.drawLine(x, y2, x2, y2);
+        do Screen.drawLine(x, y, x, y2);
+        do Screen.drawLine(x2, y, x2, y2);
+        // borde interior
+        do Screen.drawLine(x + 3, y + 3, x2 - 3, y + 3);
+        do Screen.drawLine(x + 3, y2 - 3, x2 - 3, y2 - 3);
+        do Screen.drawLine(x + 3, y + 3, x + 3, y2 - 3);
+        do Screen.drawLine(x2 - 3, y + 3, x2 - 3, y2 - 3);
+        return;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

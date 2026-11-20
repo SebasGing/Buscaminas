@@ -1,0 +1,141 @@
+/**
+ * Cell: representa UNA casilla del Buscaminas.
+ * Guarda su posicion en pantalla (pixeles), su posicion logica
+ * (fila/columna) y su estado (mina, destapada, bandera, minas vecinas).
+ * Los sprites (numeros, mina, bandera) los consulta en la clase Sprites,
+ * que debe estar inicializada con Sprites.init() antes de dibujar.
+ */
+class Cell {
+    field int x, y;            // esquina superior izquierda en pixeles
+    field int row, col;        // posicion logica dentro del tablero
+    field boolean hasMine;     // si contiene mina
+    field boolean revealed;    // si ya fue destapada
+    field boolean flagged;     // si tiene bandera
+    field int adjacent;        // minas vecinas (0 a 8)
+
+    /** Tamano de cada casilla en pixeles (20x20). */
+    function int size() {
+        return 20;
+    }
+
+    /** Crea una casilla cubierta, sin mina y sin bandera. */
+    constructor Cell new(int Ax, int Ay, int Arow, int Acol) {
+        let x = Ax;
+        let y = Ay;
+        let row = Arow;
+        let col = Acol;
+        let hasMine = false;
+        let revealed = false;
+        let flagged = false;
+        let adjacent = 0;
+        return this;
+    }
+
+    /** Dibuja la casilla segun su estado:
+        cubierta (con bandera si la tiene), vacia, con numero o con mina. */
+    method void draw() {
+        if (~revealed) {
+            do drawCovered();
+            if (flagged) {
+                do Sprites.draw(Sprites.flag(), x + 2, y + 2);
+            }
+            return;
+        }
+
+        do drawRevealed();
+        if (hasMine) {
+            do Sprites.draw(Sprites.mine(), x + 2, y + 2);
+            return;
+        }
+        if (adjacent > 0) {
+            do Sprites.draw(adjacent, x + 2, y + 2);
+        }
+        return;
+    }
+
+    /** Casilla cubierta: fondo blanco, borde negro y "sombra" abajo/derecha
+        para que parezca un boton en relieve. */
+    method void drawCovered() {
+        var int x2, y2;
+        let x2 = x + 19;
+        let y2 = y + 19;
+
+        // 1. Limpiar el area de la casilla (blanco)
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x2, y2);
+
+        // 2. Borde negro de 1 pixel
+        do Screen.setColor(true);
+        do Screen.drawLine(x, y, x2, y);      // arriba
+        do Screen.drawLine(x, y2, x2, y2);    // abajo
+        do Screen.drawLine(x, y, x, y2);      // izquierda
+        do Screen.drawLine(x2, y, x2, y2);    // derecha
+
+        // 3. Sombra interior (efecto relieve)
+        do Screen.drawRectangle(x + 3, y + 16, x + 17, y + 17);   // inferior
+        do Screen.drawRectangle(x + 16, y + 3, x + 17, y + 17);   // derecha
+        return;
+    }
+
+    /** Casilla destapada: fondo blanco y borde negro de 1 px, sin sombra. */
+    method void drawRevealed() {
+        var int x2, y2;
+        let x2 = x + 19;
+        let y2 = y + 19;
+
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x2, y2);
+
+        do Screen.setColor(true);
+        do Screen.drawLine(x, y, x2, y);      // arriba
+        do Screen.drawLine(x, y2, x2, y2);    // abajo
+        do Screen.drawLine(x, y, x, y2);      // izquierda
+        do Screen.drawLine(x2, y, x2, y2);    // derecha
+        return;
+    }
+
+    /** Dibuja la casilla destapada con la mina partida en dos (al perder). */
+    method void drawBroken() {
+        do drawRevealed();
+        do Sprites.draw(Sprites.brokenMine(), x + 2, y + 2);
+        return;
+    }
+
+    /** Cambios de estado: NO dibujan; quien los llame debe redibujar la casilla. */
+    method void reveal() {
+        let revealed = true;
+        return;
+    }
+
+    /** Pone o quita la bandera (solo si la casilla sigue cubierta). */
+    method void toggleFlag() {
+        if (~revealed) {
+            let flagged = ~flagged;
+        }
+        return;
+    }
+
+    method void setMine(boolean value) {
+        let hasMine = value;
+        return;
+    }
+
+    method void setAdjacent(int n) {
+        let adjacent = n;
+        return;
+    }
+
+    /** Getters. */
+    method int getRow() { return row; }
+    method int getCol() { return col; }
+    method int getAdjacent() { return adjacent; }
+    method boolean hasMine() { return hasMine; }
+    method boolean isRevealed() { return revealed; }
+    method boolean isFlagged() { return flagged; }
+
+    /** Libera la memoria del objeto. */
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}
